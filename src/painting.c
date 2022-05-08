@@ -1,4 +1,5 @@
 #include "painting.h"
+#include "lib/st7735.h"
 
 void paintSquare(uint16_t x, uint16_t y, uint16_t size)
 {

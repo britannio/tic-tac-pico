@@ -4,25 +4,8 @@
 #include "lib/fonts.h"
 #include "lib/st7735.h"
 #include "painting.h"
-
-// Game constants
-const int gridSize = 3;
-
-// Display dimensions
-const u_int16_t width = 80;
-const u_int16_t height = 160;
-
-enum Player
-{
-  empty,
-  ai,
-  human
-};
-
-typedef struct
-{
-  enum Player player;
-} GridPos;
+#include "logic.h"
+#include "constants.h"
 
 int main()
 {
@@ -35,18 +18,20 @@ int main()
   clearScreen();
 
   GridPos grid[] = {
-      (GridPos){.player = human},
+      (GridPos){.player = empty},
+      (GridPos){.player = empty},
       (GridPos){.player = ai},
       (GridPos){.player = empty},
-      (GridPos){.player = empty},
-      (GridPos){.player = human},
       (GridPos){.player = ai},
       (GridPos){.player = empty},
+      (GridPos){.player = ai},
       (GridPos){.player = empty},
-      (GridPos){.player = human},
+      (GridPos){.player = empty}
 
   };
-  paintGrid(gridSize, grid);
+  Player _winner = isWinner(grid);
+  printf("Winner: %d\n", _winner);
+  paintGrid(grid);
 }
 
 void clearScreen()
@@ -54,7 +39,7 @@ void clearScreen()
   ST7735_FillScreen(ST7735_BLACK);
 }
 
-void paintGrid(int size, GridPos grid[])
+void paintGrid(GridPos grid[])
 {
   uint16_t oneThird = 27;
   uint16_t twoThirds = 53;
@@ -66,7 +51,7 @@ void paintGrid(int size, GridPos grid[])
   paintHorizontalLine(twoThirds, 0, width);
 
   // Paint the players
-  for (int i = 0; i < size * size; i++)
+  for (int i = 0; i < gridSize * gridSize; i++)
   {
     printf("Painting player %d at position %d\n", grid[i].player, i);
     switch (grid[i].player)
@@ -100,8 +85,6 @@ void paintHuman(uint8_t pos)
   paintSquare(x, y, oneThird - (2 * inset));
 }
 
-
-
 void paintAI(uint8_t pos)
 {
   const uint16_t oneThird = 26;
@@ -115,4 +98,3 @@ void paintAI(uint8_t pos)
   paintVerticalLine(x + (oneThird / 2), y + inset, y + oneThird - inset);
   paintHorizontalLine(y + (oneThird / 2), x + inset, x + oneThird - inset);
 }
-
