@@ -35,11 +35,11 @@ int main()
 
   GridPos grid[] = {
       (GridPos){.player = human},
-      (GridPos){.player = empty},
+      (GridPos){.player = ai},
       (GridPos){.player = empty},
       (GridPos){.player = empty},
       (GridPos){.player = human},
-      (GridPos){.player = empty},
+      (GridPos){.player = ai},
       (GridPos){.player = empty},
       (GridPos){.player = empty},
       (GridPos){.player = human},
@@ -109,7 +109,16 @@ void paintSquare(uint16_t x, uint16_t y, uint16_t size)
 
 void paintAI(uint8_t pos)
 {
-  //
+  const uint16_t oneThird = 26;
+
+  uint16_t x = (pos % 3);
+  x += x * oneThird;
+  uint16_t y = pos / 3;
+  y += y * oneThird;
+
+  const uint16_t inset = 5;
+  paintVerticalLine(x + (oneThird / 2), y + inset, y + oneThird - inset);
+  paintHorizontalLine(y + (oneThird / 2), x + inset, x + oneThird - inset);
 }
 
 void paintVerticalLine(uint16_t x, uint16_t y1, uint16_t y2)
