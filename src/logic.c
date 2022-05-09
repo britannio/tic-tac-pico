@@ -22,26 +22,26 @@ Player isWinner(GridPos *grid)
     // Check horizontal lines
     for (int row = 0; row < size; row++)
     {
-        GridPos *rowArray = grid + (row * size);
-        if (allElementsEqual(rowArray, size))
+        GridPos *ptrRowArray = grid + (row * size);
+        if (allElementsEqual(ptrRowArray, size))
         {
-            return (*rowArray).player;
+            return (*ptrRowArray).player;
         }
     }
 
     // Check vertical lines
     for (int col = 0; col < size; col++)
     {
-        GridPos *colArray = malloc(sizeof(GridPos) * size);
+        GridPos *ptrColArray = malloc(sizeof(GridPos) * size);
         for (int i = 0; i < size; i++)
         {
-            colArray[i] = grid[i * size + col];
+            ptrColArray[i] = grid[i * size + col];
         }
 
-        if (allElementsEqual(colArray, 3))
+        if (allElementsEqual(ptrColArray, 3))
         {
-            Player player = (*colArray).player;
-            free(colArray);
+            Player player = (*ptrColArray).player;
+            free(ptrColArray);
             return player;
         }
     }
@@ -49,21 +49,21 @@ Player isWinner(GridPos *grid)
     // Check diagonal lines
     for (int diag = 0; diag < size; diag++)
     {
-        GridPos *diagArrayLtoR = malloc(sizeof(GridPos) * size);
-        GridPos *diagArrayRtoL = malloc(sizeof(GridPos) * size);
+        GridPos *ptrDiagArrayLtoR = malloc(sizeof(GridPos) * size);
+        GridPos *ptrDiagArrayRtoL = malloc(sizeof(GridPos) * size);
         for (int i = 0; i < size; i++)
         {
-            diagArrayLtoR[i] = grid[rowColToPos(i, i)];
-            diagArrayRtoL[i] = grid[rowColToPos(size - i - 1, i)];
+            ptrDiagArrayLtoR[i] = grid[rowColToPos(i, i)];
+            ptrDiagArrayRtoL[i] = grid[rowColToPos(size - i - 1, i)];
         }
 
-        if (allElementsEqual(diagArrayLtoR, size))
+        if (allElementsEqual(ptrDiagArrayLtoR, size))
         {
-            return (*diagArrayLtoR).player;
+            return (*ptrDiagArrayLtoR).player;
         }
-        if (allElementsEqual(diagArrayRtoL, size))
+        if (allElementsEqual(ptrDiagArrayRtoL, size))
         {
-            return (*diagArrayRtoL).player;
+            return (*ptrDiagArrayRtoL).player;
         }
     }
 
