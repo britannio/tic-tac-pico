@@ -7,6 +7,8 @@
 #include "logic.h"
 #include "constants.h"
 
+static volatile int cursorPos = 0;
+
 int main()
 {
   // Screen and other boilerplate initialisation
@@ -18,15 +20,15 @@ int main()
   clearScreen();
 
   GridPos grid[] = {
-      (GridPos){.player = empty},
-      (GridPos){.player = empty},
-      (GridPos){.player = empty},
-      (GridPos){.player = empty},
-      (GridPos){.player = empty},
-      (GridPos){.player = empty},
-      (GridPos){.player = empty},
-      (GridPos){.player = empty},
-      (GridPos){.player = empty},
+      (GridPos){.player = empty, .winningPos = false},
+      (GridPos){.player = empty, .winningPos = false},
+      (GridPos){.player = empty, .winningPos = false},
+      (GridPos){.player = empty, .winningPos = false},
+      (GridPos){.player = empty, .winningPos = false},
+      (GridPos){.player = empty, .winningPos = false},
+      (GridPos){.player = empty, .winningPos = false},
+      (GridPos){.player = empty, .winningPos = false},
+      (GridPos){.player = empty, .winningPos = false},
   };
 
   bool isHumanTurn = true;
@@ -66,10 +68,10 @@ void paintGrid(GridPos grid[])
   uint16_t twoThirds = 53;
 
   // Paint the lines forming the grid
-  paintVerticalLine(oneThird, 0, width);
-  paintVerticalLine(twoThirds, 0, width);
-  paintHorizontalLine(oneThird, 0, width);
-  paintHorizontalLine(twoThirds, 0, width);
+  paintVerticalLine(oneThird, 0, width, ST7735_WHITE);
+  paintVerticalLine(twoThirds, 0, width, ST7735_WHITE);
+  paintHorizontalLine(oneThird, 0, width, ST7735_WHITE);
+  paintHorizontalLine(twoThirds, 0, width, ST7735_WHITE);
 
   // Paint the players
   for (int i = 0; i < gridSize * gridSize; i++)
@@ -87,7 +89,31 @@ void paintGrid(GridPos grid[])
     }
   }
 
-  // Paint the cursor?
+  paintCursor();
+}
+
+void paintCursor()
+{
+  // Roughly one third of the display.
+  const uint16_t oneThird = 26;
+
+  // Top left of the cell
+  uint16_t x = cursorPos % 3;
+  x += x * oneThird;
+  uint16_t y = cursorPos / 3;
+  y += y * oneThird;
+
+  // Add inset
+  const uint16_t inset = 12; // Just under half of the box
+  x += inset;
+  y += inset;
+  uint16_t size = 4;
+  ST7735_FillRectangle(x, y, size, size, ST7735_GREEN);
+}
+
+void updateCursor(GridPos grid[])
+{
+  cursorPos = nextFreePos(grid);
 }
 
 void paintHuman(uint8_t pos)
@@ -104,7 +130,7 @@ void paintHuman(uint8_t pos)
   const uint16_t inset = 5;
   x += inset;
   y += inset;
-  paintSquare(x, y, oneThird - (2 * inset));
+  paintSquare(x, y, oneThird - (2 * inset), ST7735_WHITE);
 }
 
 void paintAI(uint8_t pos)
@@ -117,6 +143,6 @@ void paintAI(uint8_t pos)
   y += y * oneThird;
 
   const uint16_t inset = 5;
-  paintVerticalLine(x + (oneThird / 2), y + inset, y + oneThird - inset);
-  paintHorizontalLine(y + (oneThird / 2), x + inset, x + oneThird - inset);
+  paintVerticalLine(x + (oneThird / 2), y + inset, y + oneThird - inset, ST7735_WHITE);
+  paintHorizontalLine(y + (oneThird / 2), x + inset, x + oneThird - inset, ST7735_WHITE);
 }

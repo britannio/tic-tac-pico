@@ -10,6 +10,9 @@ typedef enum
 typedef struct
 {
   Player player;
+  // Once the game is over, the winning positions can be highlighted
+  // (change colour)
+  bool winningPos;
 } GridPos;
 
 Player isWinner(GridPos grid[]);
