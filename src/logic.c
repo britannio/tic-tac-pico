@@ -74,16 +74,34 @@ bool canPlayAtPos(int pos, GridPos grid[])
     return (grid[pos]).player == empty;
 }
 
-int aiPlayPiece(GridPos grid[])
+void playPos(Player player, int pos, GridPos grid[])
+{
+    if (!canPlayAtPos(pos, grid))
+    {
+        // error
+        printf("ERROR: Cannot play at position %d", pos);
+        return;
+    }
+
+    (grid[pos]).player = player;
+}
+
+int aiPlay(GridPos grid[])
 {
     // TODO Implement better AI
-    for (int i = 0; i < size;i++) {
+    return nextFreePos(grid);
+}
+
+int nextFreePos(GridPos grid[])
+{
+    for (int i = 0; i < size * size; i++)
+    {
         GridPos pos = grid[i];
-        if (pos.player == empty) {
+        if (pos.player == empty)
+        {
             return i;
         }
     }
-    return NULL;
 }
 
 int rowColToPos(int row, int col)

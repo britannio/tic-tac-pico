@@ -20,18 +20,39 @@ int main()
   GridPos grid[] = {
       (GridPos){.player = empty},
       (GridPos){.player = empty},
-      (GridPos){.player = ai},
       (GridPos){.player = empty},
-      (GridPos){.player = ai},
       (GridPos){.player = empty},
-      (GridPos){.player = ai},
       (GridPos){.player = empty},
-      (GridPos){.player = empty}
-
+      (GridPos){.player = empty},
+      (GridPos){.player = empty},
+      (GridPos){.player = empty},
+      (GridPos){.player = empty},
   };
-  Player _winner = isWinner(grid);
-  printf("Winner: %d\n", _winner);
+
+  bool isHumanTurn = true;
+  Player winner;
+  while ((winner = isWinner(grid)) == empty)
+  {
+    paintGrid(grid);
+    if (isHumanTurn)
+    {
+      // Human's turn
+      playPos(human, nextFreePos(grid), grid);
+      // TODO select a position
+      // TODO play the selected position
+    }
+    else
+    {
+      // AI's turn
+      int pos = aiPlay(grid);
+      playPos(ai, pos, grid);
+    }
+    isHumanTurn = !isHumanTurn;
+    sleep_ms(1000);
+  }
   paintGrid(grid);
+
+  printf("Winner is %d!!!\n", winner);
 }
 
 void clearScreen()
@@ -53,19 +74,20 @@ void paintGrid(GridPos grid[])
   // Paint the players
   for (int i = 0; i < gridSize * gridSize; i++)
   {
-    printf("Painting player %d at position %d\n", grid[i].player, i);
     switch (grid[i].player)
     {
-    case ai:
-      paintAI(i);
+    case empty:
       break;
     case human:
       paintHuman(i);
       break;
-    case empty:
+    case ai:
+      paintAI(i);
       break;
     }
   }
+
+  // Paint the cursor?
 }
 
 void paintHuman(uint8_t pos)
