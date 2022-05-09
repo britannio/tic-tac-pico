@@ -1,6 +1,7 @@
 #include "logic.h"
 #include "pico/stdlib.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 const int size = 3;
 

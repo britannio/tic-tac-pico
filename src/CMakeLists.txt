@@ -16,6 +16,7 @@ target_link_libraries(
   hardware_spi
   hardware_i2c
   pico_stdlib
+  pico_multicore
 )
 
 pico_enable_stdio_usb(tic_tac_toe 1)

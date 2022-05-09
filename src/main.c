@@ -6,8 +6,66 @@
 #include "painting.h"
 #include "logic.h"
 #include "constants.h"
+#include "lib/ICM20948.h"
+#include "pico/multicore.h"
+
+static void core1_entry();
+static void clearScreen();
+static void paintGrid(GridPos grid[]);
+static void paintCursor();
+static void updateCursor(GridPos grid[]);
+static void paintHuman(uint8_t pos);
+static void paintAI(uint8_t pos);
 
 static volatile int cursorPos = 0;
+
+typedef enum
+{
+  Left,
+  Right,
+  Up,
+  Down
+} Move;
+
+void core1_entry()
+{
+  float x;
+  float y;
+  float z;
+  printf("Running core1_entry()\n");
+
+  while (true)
+  {
+    icm20948AccelRead(&x, &y, &z); // Use the addresses of our variables. This function sets data at a pointer, so we give it three pointers.
+    // Left = +x
+    // Up = +y
+    printf("x\ty\n%.2f\t%.2f\n", x, y);
+    sleep_ms(500);
+    char xString[100];
+    int xChars = sprintf(xString, "%.2f", x);
+    char yString[100];
+    int yChars = sprintf(yString, "%.2f", y);
+    // Clear the bottom half of the screen
+    ST7735_FillRectangle(0, 80, ST7735_WIDTH / 2, ST7735_HEIGHT / 2, ST7735_BLACK);
+
+    // Write X and Y values to display
+    ST7735_WriteString(7, 80, xString, Font_16x26, ST7735_RED, ST7735_BLACK);
+    ST7735_WriteString(7, 120, yString, Font_16x26, ST7735_GREEN, ST7735_BLACK);
+
+  }
+
+  // multicore_fifo_push_blocking(FLAG_VALUE);
+
+  // uint32_t g = multicore_fifo_pop_blocking();
+
+  // if (g != FLAG_VALUE)
+  //     printf("Hmm, that's not right on core 1!\n");
+  // else
+  //     printf("Its all gone well on core 1!");
+
+  // while (1)
+  //     tight_loop_contents();
+}
 
 int main()
 {
@@ -16,8 +74,28 @@ int main()
   setvbuf(stdout, NULL, _IONBF, 0); // Disable line and block buffering on stdout (for talking through serial)
   sleep_ms(1000);                   // Give the Pico some time to think...
   ST7735_Init();                    // Initialise the screen
+  // ---------------------------------------------------------------------------
+  // Accelerometer (Critically important, but I do not know what it does.)
+  i2c_init(i2c0, 400 * 1000);
+  gpio_set_function(4, GPIO_FUNC_I2C);
+  gpio_set_function(5, GPIO_FUNC_I2C);
+  gpio_pull_up(4);
+  gpio_pull_up(5);
+
+  IMU_EN_SENSOR_TYPE enMotionSensorType;
+
+  imuInit(&enMotionSensorType);
+  if (IMU_EN_SENSOR_TYPE_ICM20948 != enMotionSensorType)
+  {
+    printf("Failed to initialise IMU...\n");
+  }
+
+  printf("IMU initialised!\n");
+  // ---------------------------------------------------------------------------
 
   clearScreen();
+  // Start the second core to handle inputs
+  multicore_launch_core1(core1_entry);
 
   GridPos grid[] = {
       (GridPos){.player = empty, .winningPos = false},
@@ -55,6 +133,10 @@ int main()
   paintGrid(grid);
 
   printf("Winner is %d!!!\n", winner);
+  
+  // Remove once piece placing is implemented
+  while (1)
+    tight_loop_contents();
 }
 
 void clearScreen()
