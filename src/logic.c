@@ -5,7 +5,7 @@
 
 const int size = 3;
 
-bool allElementsEqual(volatile GridPos grid[], int size)
+bool allElementsEqual(GridPos grid[], int size)
 {
     for (int i = 0; i < size; i++)
     {
@@ -17,12 +17,12 @@ bool allElementsEqual(volatile GridPos grid[], int size)
     return true;
 }
 
-Player isWinner(volatile GridPos *grid)
+Player isWinner(GridPos *grid)
 {
     // Check horizontal lines
     for (int row = 0; row < size; row++)
     {
-        volatile GridPos *ptrRowArray = grid + (row * size);
+        GridPos *ptrRowArray = grid + (row * size);
         if (allElementsEqual(ptrRowArray, size))
         {
             return (*ptrRowArray).player;
@@ -70,12 +70,12 @@ Player isWinner(volatile GridPos *grid)
     return empty;
 }
 
-bool canPlayAtPos(int pos, volatile GridPos grid[])
+bool canPlayAtPos(int pos, GridPos grid[])
 {
     return (grid[pos]).player == empty;
 }
 
-bool playPos(Player player, int pos, volatile GridPos grid[])
+bool playPos(Player player, int pos, GridPos grid[])
 {
     if (!canPlayAtPos(pos, grid))
     {
@@ -88,13 +88,13 @@ bool playPos(Player player, int pos, volatile GridPos grid[])
     return true;
 }
 
-int aiPlay(volatile GridPos grid[])
+int aiPlay(GridPos grid[])
 {
     // TODO Implement better AI
     return nextFreePos(grid);
 }
 
-int nextFreePos(volatile GridPos grid[])
+int nextFreePos(GridPos grid[])
 {
     for (int i = 0; i < size * size; i++)
     {

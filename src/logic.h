@@ -15,10 +15,10 @@ typedef struct
   bool winningPos;
 } GridPos;
 
-Player isWinner(volatile GridPos grid[]);
-int aiPlay(volatile GridPos grid[]);
-bool canPlayAtPos(int pos, volatile GridPos grid[]);
-bool playPos(Player player, int pos, volatile GridPos grid[]);
-int nextFreePos(volatile GridPos grid[]);
+Player isWinner(GridPos grid[]);
+int aiPlay(GridPos grid[]);
+bool canPlayAtPos(int pos, GridPos grid[]);
+bool playPos(Player player, int pos, GridPos grid[]);
+int nextFreePos(GridPos grid[]);
 int rowColToPos(int row, int col);
-bool allElementsEqual(volatile GridPos grid[], int size);
+bool allElementsEqual(GridPos grid[], int size);

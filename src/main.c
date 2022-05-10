@@ -26,9 +26,9 @@ static void paintAI(uint8_t pos);
 static void buttonCallback(uint gpio, uint32_t events);
 static void updatePosWithMove(Move move);
 
-static volatile int cursorPos = 0;
+static int cursorPos = 0;
 
-volatile GridPos grid[] = {
+GridPos grid[] = {
     (GridPos){.player = empty, .winningPos = false},
     (GridPos){.player = empty, .winningPos = false},
     (GridPos){.player = empty, .winningPos = false},
