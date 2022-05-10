@@ -19,9 +19,8 @@ typedef enum
 
 static void core1_entry();
 static void clearScreen();
-static void paintGrid(GridPos grid[]);
+static void paintGrid();
 static void paintCursor();
-static void updateCursor(GridPos grid[]);
 static void paintHuman(uint8_t pos);
 static void paintAI(uint8_t pos);
 static void buttonCallback(uint gpio, uint32_t events);
@@ -57,9 +56,9 @@ void core1_entry()
     // Up = +y
     printf("x\ty\n%.2f\t%.2f\n", x, y);
 
-    const int xThreshold = 0.6;
-    const int yThreshold = 0.5;
-    Move move;
+    const float xThreshold = 0.6;
+    const float yThreshold = 0.4;
+    Move move = -1;
 
     // Detect action
     if (x > xThreshold)
@@ -71,8 +70,10 @@ void core1_entry()
     else if (y < -yThreshold)
       move = Down;
 
-    if (move == NULL)
+    if (move == -1)
+    {
       continue;
+    }
 
     multicore_fifo_push_blocking(move);
   }
@@ -116,45 +117,27 @@ int main()
   // unpressed, it uses internal pull ups. Otherwise when unpressed, the input will
   // be floating.
   gpio_pull_up(BUTTON_GPIO);
+  // Use an interrupt to invoke a callback function when the button is pressed
   gpio_set_irq_enabled_with_callback(BUTTON_GPIO, GPIO_IRQ_EDGE_FALL, true, &buttonCallback);
   printf("Button initialised!\n");
   // ---------------------------------------------------------------------------
 
-  // Start the second core to handle inputs
+  // Start the second core to manage the accelerometer.
   multicore_launch_core1(core1_entry);
 
-  paintGrid(grid);
+  paintGrid();
   Player winner;
   while ((winner = isWinner(grid)) == empty)
   {
+    // Accept the enxt move from core 1
     Move move = multicore_fifo_pop_blocking();
+    // Update the cursor based on that move
     updatePosWithMove(move);
-    paintGrid(grid);
-    switch (move)
-    {
-    case Left:
-      printf("Moved left\n");
-      break;
-    case Right:
-      printf("Moved right\n");
-      break;
-    case Up:
-      printf("Moved up\n");
-      break;
-    case Down:
-      printf("Moved down\n");
-      break;
-    default:
-      break;
-    }
+    // Redraw the grid
+    paintGrid();
   }
-  paintGrid(grid);
 
   printf("Winner is %d!!!\n", winner);
-
-  // Remove once piece placing is implemented
-  while (1)
-    tight_loop_contents();
 }
 
 void buttonCallback(uint gpio, uint32_t events)
@@ -162,13 +145,22 @@ void buttonCallback(uint gpio, uint32_t events)
   printf("Button pressed, place piece\n");
   bool played = playPos(human, cursorPos, grid);
   if (!played)
+  {
+    // A piece couldn't be played in the current position because it is already
+    // occupied.
     return;
+  }
 
-  paintGrid(grid);
+  paintGrid();
   // AI's turn
   int pos = aiPlay(grid);
+  if (pos == -1)
+  {
+    // There is no move the AI can respond with.
+    return;
+  }
   playPos(ai, pos, grid);
-  paintGrid(grid);
+  paintGrid();
 }
 
 void clearScreen()
@@ -186,6 +178,7 @@ void updatePosWithMove(Move move)
       printf("Rejecting move Left: %d\n", cursorPos);
       return;
     }
+    printf("Moving Left\n");
     cursorPos--;
     break;
   case Right:
@@ -194,6 +187,7 @@ void updatePosWithMove(Move move)
       printf("Rejecting move Right: %d\n", cursorPos);
       return;
     }
+    printf("Moving Right\n");
     cursorPos++;
     break;
   case Up:
@@ -202,6 +196,7 @@ void updatePosWithMove(Move move)
       printf("Rejecting move Up: %d\n", cursorPos);
       return;
     }
+    printf("Moving Up\n");
     cursorPos -= 3;
     break;
   case Down:
@@ -210,18 +205,20 @@ void updatePosWithMove(Move move)
       printf("Rejecting move Down: %d\n", cursorPos);
       return;
     }
+    printf("Moving Down\n");
     cursorPos += 3;
+    break;
   }
 }
 
-void paintGrid(GridPos grid[])
+void paintGrid()
 {
   // Clear top half of screen
   ST7735_FillRectangle(0, 0, ST7735_WIDTH, ST7735_HEIGHT / 2, ST7735_BLACK);
-  uint16_t oneThird = 27;
-  uint16_t twoThirds = 53;
 
   // Paint the lines forming the grid
+  const uint16_t oneThird = ST7735_WIDTH / 3;
+  const uint16_t twoThirds = oneThird * 2;
   paintVerticalLine(oneThird, 0, ST7735_WIDTH, ST7735_WHITE);
   paintVerticalLine(twoThirds, 0, ST7735_WIDTH, ST7735_WHITE);
   paintHorizontalLine(oneThird, 0, ST7735_WIDTH, ST7735_WHITE);
@@ -263,11 +260,6 @@ void paintCursor()
   y += inset;
   uint16_t size = 4;
   ST7735_FillRectangle(x, y, size, size, ST7735_GREEN);
-}
-
-void updateCursor(GridPos grid[])
-{
-  cursorPos = nextFreePos(grid);
 }
 
 void paintHuman(uint8_t pos)
