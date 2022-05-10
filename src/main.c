@@ -34,7 +34,7 @@ static int cursorPos = 0;
 GridPos grid[POSITIONS] =
     {[0 ... LAST_POSITION] = (GridPos){.player = empty, .winningPos = false}};
 
-// The second core (core 1) reads accelerometer data, converts it to 
+// The second core (core 1) reads accelerometer data, converts it to
 // (left/right/up/down) then puts it onto the multicore queue where the first
 // core can receive it.
 void core1_entry()
@@ -47,7 +47,8 @@ void core1_entry()
   while (true)
   {
     sleep_ms(500);
-    // Use the addresses of our variables. This function sets data at a pointer, so we give it three pointers.
+    // Use the addresses of our variables.
+    // This function sets data at a pointer, so we give it three pointers.
     icm20948AccelRead(&x, &y, &z);
     // Left = +x
     // Up = +y
@@ -78,10 +79,10 @@ void core1_entry()
 
 int main()
 {
-  // Initialise serial in/output
+  // INITIALISE SERIAL IN/OUTPUT
   stdio_init_all();
 
-  // INITIALISE SCREEN
+  // INITIALISE SCREEN (https://github.com/plaaosert/st7735-guide)
   // ---------------------------------------------------------------------------
   // Disable line and block buffering on stdout (for talking through serial)
   setvbuf(stdout, NULL, _IONBF, 0);
@@ -91,7 +92,7 @@ int main()
   ST7735_Init();
   clearScreen();
 
-  // INITIALISE ACCELEROMETER
+  // INITIALISE ACCELEROMETER (https://github.com/plaaosert/icm20948-guide)
   // ---------------------------------------------------------------------------
   i2c_init(i2c0, 400 * 1000);
   gpio_set_function(4, GPIO_FUNC_I2C);
@@ -124,25 +125,22 @@ int main()
   multicore_launch_core1(core1_entry);
 
   startGame();
-  while (1)
-    tight_loop_contents();
 }
 
 void startGame()
 {
   // Initial paint
   paintGrid();
-  Player _winner;
+  Player _winner; // human, ai or empty
   while ((_winner = winner(grid)) == empty)
   {
-    // Accept the enxt move from core 1
-    Move move = multicore_fifo_pop_blocking();
+    // Accept the next move from core 1
+    Move move = multicore_fifo_pop_blocking(); // Left, Right, Up or Down.
     // Update the cursor based on that move
     updatePosWithMove(move);
     // Repaint the grid
     paintGrid();
   }
-
   printf("Winner is %d!!!\n", _winner);
   paintGameOverText();
 }
@@ -183,6 +181,7 @@ void updatePosWithMove(Move move)
   case Left:
     if (cursorPos % GRID_SIZE == 0)
     {
+      // Cursor is on the left edge.
       printf("Rejecting move Left: %d\n", cursorPos);
       return;
     }
@@ -192,6 +191,7 @@ void updatePosWithMove(Move move)
   case Right:
     if ((cursorPos + 1) % GRID_SIZE == 0)
     {
+      // Cursor is on the right edge.
       printf("Rejecting move Right: %d\n", cursorPos);
       return;
     }
@@ -201,6 +201,7 @@ void updatePosWithMove(Move move)
   case Up:
     if (cursorPos < GRID_SIZE)
     {
+      // Cursor is on the top edge.
       printf("Rejecting move Up: %d\n", cursorPos);
       return;
     }
@@ -210,6 +211,7 @@ void updatePosWithMove(Move move)
   case Down:
     if (cursorPos >= POSITIONS - GRID_SIZE)
     {
+      // Cursor is on the bottom edge.
       printf("Rejecting move Down: %d\n", cursorPos);
       return;
     }
