@@ -145,7 +145,11 @@ void startGame()
   paintGameOverText();
 }
 
-// Invoked when the button is pressed.
+// This method is invoked when the button is pressed.
+// It does the following:
+// 1. Uses the current cursor position to attempt to play a nought.
+// 2. If successful, it repaints the grid then the AI responds with it's own move.
+// 3. If the AI was able to play a move, the grid is repainted once more.
 void buttonCallback(uint gpio, uint32_t events)
 {
   printf("Button pressed, place piece\n");
