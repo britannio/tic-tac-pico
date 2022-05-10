@@ -160,9 +160,9 @@ void buttonCallback(uint gpio, uint32_t events)
   paintGrid();
   // AI's turn
   int pos = aiPlay(grid);
-  if (pos == -1)
+  if (pos == -1 || winner(grid) != empty)
   {
-    // There is no move the AI can respond with.
+    // There is no move the AI can respond with or the game is over.
     return;
   }
   playPos(ai, pos, grid);

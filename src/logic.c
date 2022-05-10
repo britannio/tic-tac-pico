@@ -23,7 +23,7 @@ Player winner(GridPos *grid)
     for (int row = 0; row < GRID_SIZE; row++)
     {
         GridPos *ptrRowArray = grid + (row * GRID_SIZE);
-        if (allElementsEqual(ptrRowArray, GRID_SIZE))
+        if (allElementsEqual(ptrRowArray, GRID_SIZE) && (*ptrRowArray).player != empty)
         {
             return (*ptrRowArray).player;
         }
@@ -38,10 +38,8 @@ Player winner(GridPos *grid)
             ptrColArray[i] = grid[i * GRID_SIZE + col];
         }
 
-        Player player;
-        bool verticalMatch = allElementsEqual(ptrColArray, 3);
-        if (verticalMatch)
-            player = (*ptrColArray).player;
+        Player player = (*ptrColArray).player;
+        bool verticalMatch = allElementsEqual(ptrColArray, 3) && player != empty;
         free(ptrColArray);
         if (verticalMatch)
             return player;
@@ -79,13 +77,13 @@ Player winner(GridPos *grid)
         Player player;
         bool diagMatch = true;
 
-        if (allElementsEqual(ptrDiagArrayLtoR, GRID_SIZE))
+        if (allElementsEqual(ptrDiagArrayLtoR, GRID_SIZE) //
+            && (player = (*ptrDiagArrayLtoR).player) != empty)
         {
-            player = (*ptrDiagArrayLtoR).player;
         }
-        else if (allElementsEqual(ptrDiagArrayRtoL, GRID_SIZE))
+        else if (allElementsEqual(ptrDiagArrayRtoL, GRID_SIZE) //
+                 && (player = (*ptrDiagArrayRtoL).player) != empty)
         {
-            player = (*ptrDiagArrayRtoL).player;
         }
         else
         {
