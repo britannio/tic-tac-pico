@@ -90,7 +90,7 @@ bool playPos(Player player, int pos, GridPos grid[])
 
 int aiPlay(GridPos grid[])
 {
-    // TODO Implement better AI
+    // TODO Implement better AI such as minimax (https://github.com/britannio/tic-tac-toe)
     return nextFreePos(grid);
 }
 
