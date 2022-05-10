@@ -17,7 +17,7 @@ bool allElementsEqual(GridPos grid[], int size)
     return true;
 }
 
-Player isWinner(GridPos *grid)
+Player winner(GridPos *grid)
 {
     // Check horizontal lines
     for (int row = 0; row < size; row++)

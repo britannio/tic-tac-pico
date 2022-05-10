@@ -1,8 +1,9 @@
 #include <stdio.h>
 
 // Game constants
-const int gridSize = 3;
-const int positions = gridSize * gridSize;
+#define GRID_SIZE 3
+#define POSITIONS 9 // GRID_SIZE squared
+#define LAST_POSITION 8 // POSITIONS - 1
 
 // Hardware
-const uint BUTTON_GPIO = 21;
+#define BUTTON_GPIO 21

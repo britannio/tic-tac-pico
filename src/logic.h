@@ -15,7 +15,7 @@ typedef struct
   bool winningPos;
 } GridPos;
 
-Player isWinner(GridPos grid[]);
+Player winner(GridPos grid[]);
 int aiPlay(GridPos grid[]);
 bool canPlayAtPos(int pos, GridPos grid[]);
 bool playPos(Player player, int pos, GridPos grid[]);

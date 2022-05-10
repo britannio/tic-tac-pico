@@ -25,21 +25,18 @@ static void paintHuman(uint8_t pos);
 static void paintAI(uint8_t pos);
 static void buttonCallback(uint gpio, uint32_t events);
 static void updatePosWithMove(Move move);
+static void paintGameOverText();
+static void startGame();
 
 static int cursorPos = 0;
 
-GridPos grid[] = {
-    (GridPos){.player = empty, .winningPos = false},
-    (GridPos){.player = empty, .winningPos = false},
-    (GridPos){.player = empty, .winningPos = false},
-    (GridPos){.player = empty, .winningPos = false},
-    (GridPos){.player = empty, .winningPos = false},
-    (GridPos){.player = empty, .winningPos = false},
-    (GridPos){.player = empty, .winningPos = false},
-    (GridPos){.player = empty, .winningPos = false},
-    (GridPos){.player = empty, .winningPos = false},
-};
+// Initialise the grid
+GridPos grid[POSITIONS] =
+    {[0 ... LAST_POSITION] = (GridPos){.player = empty, .winningPos = false}};
 
+// The second core (core 1) reads accelerometer data, converts it to 
+// (left/right/up/down) then puts it onto the multicore queue where the first
+// core can receive it.
 void core1_entry()
 {
   float x;
@@ -54,7 +51,7 @@ void core1_entry()
     icm20948AccelRead(&x, &y, &z);
     // Left = +x
     // Up = +y
-    printf("x\ty\n%.2f\t%.2f\n", x, y);
+    // printf("x\ty\n%.2f\t%.2f\n", x, y);
 
     const float xThreshold = 0.6;
     const float yThreshold = 0.4;
@@ -118,6 +115,7 @@ int main()
   // be floating.
   gpio_pull_up(BUTTON_GPIO);
   // Use an interrupt to invoke a callback function when the button is pressed
+  // See: https://github.com/raspberrypi/pico-examples/blob/master/gpio/hello_gpio_irq/hello_gpio_irq.c
   gpio_set_irq_enabled_with_callback(BUTTON_GPIO, GPIO_IRQ_EDGE_FALL, true, &buttonCallback);
   printf("Button initialised!\n");
   // ---------------------------------------------------------------------------
@@ -125,21 +123,31 @@ int main()
   // Start the second core to manage the accelerometer.
   multicore_launch_core1(core1_entry);
 
+  startGame();
+  while (1)
+    tight_loop_contents();
+}
+
+void startGame()
+{
+  // Initial paint
   paintGrid();
-  Player winner;
-  while ((winner = isWinner(grid)) == empty)
+  Player _winner;
+  while ((_winner = winner(grid)) == empty)
   {
     // Accept the enxt move from core 1
     Move move = multicore_fifo_pop_blocking();
     // Update the cursor based on that move
     updatePosWithMove(move);
-    // Redraw the grid
+    // Repaint the grid
     paintGrid();
   }
 
-  printf("Winner is %d!!!\n", winner);
+  printf("Winner is %d!!!\n", _winner);
+  paintGameOverText();
 }
 
+// Invoked when the button is pressed.
 void buttonCallback(uint gpio, uint32_t events)
 {
   printf("Button pressed, place piece\n");
@@ -173,7 +181,7 @@ void updatePosWithMove(Move move)
   switch (move)
   {
   case Left:
-    if (cursorPos % gridSize == 0)
+    if (cursorPos % GRID_SIZE == 0)
     {
       printf("Rejecting move Left: %d\n", cursorPos);
       return;
@@ -182,7 +190,7 @@ void updatePosWithMove(Move move)
     cursorPos--;
     break;
   case Right:
-    if ((cursorPos + 1) % gridSize == 0)
+    if ((cursorPos + 1) % GRID_SIZE == 0)
     {
       printf("Rejecting move Right: %d\n", cursorPos);
       return;
@@ -191,7 +199,7 @@ void updatePosWithMove(Move move)
     cursorPos++;
     break;
   case Up:
-    if (cursorPos < gridSize)
+    if (cursorPos < GRID_SIZE)
     {
       printf("Rejecting move Up: %d\n", cursorPos);
       return;
@@ -200,7 +208,7 @@ void updatePosWithMove(Move move)
     cursorPos -= 3;
     break;
   case Down:
-    if (cursorPos >= (gridSize * gridSize) - gridSize)
+    if (cursorPos >= POSITIONS - GRID_SIZE)
     {
       printf("Rejecting move Down: %d\n", cursorPos);
       return;
@@ -225,7 +233,7 @@ void paintGrid()
   paintHorizontalLine(twoThirds, 0, ST7735_WIDTH, ST7735_WHITE);
 
   // Paint the players
-  for (int i = 0; i < gridSize * gridSize; i++)
+  for (int i = 0; i < POSITIONS; i++)
   {
     switch (grid[i].player)
     {
@@ -291,4 +299,13 @@ void paintAI(uint8_t pos)
   const uint16_t inset = 5;
   paintVerticalLine(x + (oneThird / 2), y + inset, y + oneThird - inset, ST7735_WHITE);
   paintHorizontalLine(y + (oneThird / 2), x + inset, x + oneThird - inset, ST7735_WHITE);
+}
+
+void paintGameOverText()
+{
+  const uint16_t textHeight = 26;
+  const uint16_t y = 94;
+  const uint16_t inset = 8;
+  ST7735_WriteString(inset, y, "GAME", Font_16x26, ST7735_RED, ST7735_BLACK);
+  ST7735_WriteString(inset, y + textHeight, "OVER", Font_16x26, ST7735_RED, ST7735_BLACK);
 }
