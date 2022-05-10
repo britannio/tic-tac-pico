@@ -75,16 +75,17 @@ bool canPlayAtPos(int pos, GridPos grid[])
     return (grid[pos]).player == empty;
 }
 
-void playPos(Player player, int pos, GridPos grid[])
+bool playPos(Player player, int pos, GridPos grid[])
 {
     if (!canPlayAtPos(pos, grid))
     {
         // error
         printf("ERROR: Cannot play at position %d", pos);
-        return;
+        return false;
     }
 
     (grid[pos]).player = player;
+    return true;
 }
 
 int aiPlay(GridPos grid[])

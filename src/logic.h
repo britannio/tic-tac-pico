@@ -18,6 +18,6 @@ typedef struct
 Player isWinner(GridPos grid[]);
 int aiPlay(GridPos grid[]);
 bool canPlayAtPos(int pos, GridPos grid[]);
-void playPos(Player player, int pos, GridPos grid[]);
+bool playPos(Player player, int pos, GridPos grid[]);
 int nextFreePos(GridPos grid[]);
 int rowColToPos(int row, int col);
