@@ -2,9 +2,9 @@
 #include "pico/stdlib.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "constants.h"
 
-const int size = 3;
-
+// True if all players in a portion of the grid are the same.
 bool allElementsEqual(GridPos grid[], int size)
 {
     for (int i = 0; i < size; i++)
@@ -20,51 +20,81 @@ bool allElementsEqual(GridPos grid[], int size)
 Player winner(GridPos *grid)
 {
     // Check horizontal lines
-    for (int row = 0; row < size; row++)
+    for (int row = 0; row < GRID_SIZE; row++)
     {
-        GridPos *ptrRowArray = grid + (row * size);
-        if (allElementsEqual(ptrRowArray, size))
+        GridPos *ptrRowArray = grid + (row * GRID_SIZE);
+        if (allElementsEqual(ptrRowArray, GRID_SIZE))
         {
             return (*ptrRowArray).player;
         }
     }
 
     // Check vertical lines
-    for (int col = 0; col < size; col++)
+    for (int col = 0; col < GRID_SIZE; col++)
     {
-        GridPos *ptrColArray = malloc(sizeof(GridPos) * size);
-        for (int i = 0; i < size; i++)
+        GridPos *ptrColArray = malloc(sizeof(GridPos) * GRID_SIZE);
+        for (int i = 0; i < GRID_SIZE; i++)
         {
-            ptrColArray[i] = grid[i * size + col];
+            ptrColArray[i] = grid[i * GRID_SIZE + col];
         }
 
-        if (allElementsEqual(ptrColArray, 3))
-        {
-            Player player = (*ptrColArray).player;
-            free(ptrColArray);
+        Player player;
+        bool verticalMatch = allElementsEqual(ptrColArray, 3);
+        if (verticalMatch)
+            player = (*ptrColArray).player;
+        free(ptrColArray);
+        if (verticalMatch)
             return player;
-        }
     }
 
     // Check diagonal lines
-    for (int diag = 0; diag < size; diag++)
+    for (int diag = 0; diag < GRID_SIZE; diag++)
     {
-        GridPos *ptrDiagArrayLtoR = malloc(sizeof(GridPos) * size);
-        GridPos *ptrDiagArrayRtoL = malloc(sizeof(GridPos) * size);
-        for (int i = 0; i < size; i++)
+        /*
+        ┌───┬───┬───┐
+        │ x │   │   │
+        ├───┼───┼───┤
+        │   │ x │   │
+        ├───┼───┼───┤
+        │   │   │ x │
+        └───┴───┴───┘
+        */
+        GridPos *ptrDiagArrayLtoR = malloc(sizeof(GridPos) * GRID_SIZE);
+        /*
+        ┌───┬───┬───┐
+        │   │   │ x │
+        ├───┼───┼───┤
+        │   │ x │   │
+        ├───┼───┼───┤
+        │ x │   │   │
+        └───┴───┴───┘
+        */
+        GridPos *ptrDiagArrayRtoL = malloc(sizeof(GridPos) * GRID_SIZE);
+        for (int i = 0; i < GRID_SIZE; i++)
         {
             ptrDiagArrayLtoR[i] = grid[rowColToPos(i, i)];
-            ptrDiagArrayRtoL[i] = grid[rowColToPos(size - i - 1, i)];
+            ptrDiagArrayRtoL[i] = grid[rowColToPos(GRID_SIZE - i - 1, i)];
         }
 
-        if (allElementsEqual(ptrDiagArrayLtoR, size))
+        Player player;
+        bool diagMatch = true;
+
+        if (allElementsEqual(ptrDiagArrayLtoR, GRID_SIZE))
         {
-            return (*ptrDiagArrayLtoR).player;
+            player = (*ptrDiagArrayLtoR).player;
         }
-        if (allElementsEqual(ptrDiagArrayRtoL, size))
+        else if (allElementsEqual(ptrDiagArrayRtoL, GRID_SIZE))
         {
-            return (*ptrDiagArrayRtoL).player;
+            player = (*ptrDiagArrayRtoL).player;
         }
+        else
+        {
+            diagMatch = false;
+        }
+        free(ptrDiagArrayLtoR);
+        free(ptrDiagArrayRtoL);
+        if (diagMatch)
+            return player;
     }
 
     return empty;
@@ -90,13 +120,14 @@ bool playPos(Player player, int pos, GridPos grid[])
 
 int aiPlay(GridPos grid[])
 {
-    // TODO Implement better AI such as minimax (https://github.com/britannio/tic-tac-toe)
+    // One could implement a better AI algorithm such as minimax
+    // https://github.com/britannio/tic-tac-toe
     return nextFreePos(grid);
 }
 
 int nextFreePos(GridPos grid[])
 {
-    for (int i = 0; i < size * size; i++)
+    for (int i = 0; i < POSITIONS; i++)
     {
         GridPos pos = grid[i];
         if (pos.player == empty)
